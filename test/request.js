@@ -667,13 +667,15 @@ describe('Request', () => {
 
             const server = Hapi.server();
             server.route({ method: 'GET', path: '/', handler: () => 'ok' });
+            await server.start();
 
             const log = server.events.once('response');
-            await server.inject('/');
+            await Wreck.get('http://localhost:' + server.info.port);
             const [request] = await log;
             expect(request.info.responded).to.be.min(request.info.received);
             expect(request.response.source).to.equal('ok');
             expect(request.response.statusCode).to.equal(200);
+            await server.stop({ timeout: 1 });
         });
 
         it('closes response after server timeout', async () => {
